@@ -1,8 +1,8 @@
 *.suo
 *.cache
 *csproj.user
-src/*/bin
-src/*/obj
+bin
+obj
 *ReSharper*
 output
 *.pidb
