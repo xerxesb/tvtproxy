@@ -1,29 +1,35 @@
-﻿using System;
+﻿using System.Text;
 using System.Web;
 
 namespace TvTProxy
 {
+    /// <summary>
+    /// Based on http://www.codeproject.com/Articles/7135/Simple-HTTP-Reverse-Proxy-with-ASP-NET-and-IIS
+    /// </summary>
     public class SiteProxy : IHttpHandler
     {
-        /// <summary>
-        /// You will need to configure this handler in the Web.config file of your 
-        /// web and register it with IIS before being able to use it. For more information
-        /// see the following link: http://go.microsoft.com/?linkid=8101007
-        /// </summary>
-        #region IHttpHandler Members
-
         public bool IsReusable
         {
-            // Return false in case your Managed Handler cannot be reused for another request.
-            // Usually this would be false in case you have some state information preserved per request.
-            get { return true; }
+            get { return false; }
         }
 
         public void ProcessRequest(HttpContext context)
         {
-            context.Response.Write("Hello from the handler @ " + DateTime.Now.ToString());
-        }
+            var server = new RemoteServer(context);
 
-        #endregion
+            var request = server.GetRequest();
+
+            var response = server.GetResponse(request);
+            var responseData = server.GetResponseStreamBytes(response);
+
+            context.Response.ContentEncoding = Encoding.UTF8;
+            context.Response.ContentType = response.ContentType;
+            context.Response.OutputStream.Write(responseData, 0, responseData.Length);
+
+            server.SetContextCookies(response);
+
+            response.Close();
+            context.Response.End();
+        }
     }
 }
